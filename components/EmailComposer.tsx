@@ -22,20 +22,17 @@ export default function EmailComposer({ contact, toneProfile, onBack, onReset }:
     setIsGenerating(true)
 
     try {
-      // TODO: Implement AI email generation based on tone profile and goal
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const res = await fetch('/api/gmail/compose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact, toneProfile, goal: emailGoal }),
+      })
 
-      // Mock generated email
-      setSubject(`Re: ${emailGoal}`)
-      setBody(`Hi ${contact.name},
+      if (!res.ok) throw new Error('Generation failed')
 
-I hope you're doing well! I wanted to reach out regarding ${emailGoal.toLowerCase()}.
-
-[Your email content will be generated here based on your established communication patterns and the specific goal you've outlined.]
-
-Let me know your thoughts, and I'm happy to discuss this further.
-
-Best regards`)
+      const { subject: generatedSubject, body: generatedBody } = await res.json()
+      setSubject(generatedSubject)
+      setBody(generatedBody)
     } catch (error) {
       console.error('Email generation failed:', error)
     } finally {
