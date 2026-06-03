@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Mail, Search, Users, Edit3, Send } from 'lucide-react'
 import ContactSearch from '@/components/ContactSearch'
 import ToneAnalysis from '@/components/ToneAnalysis'
@@ -10,6 +10,17 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState<'search' | 'analyze' | 'compose'>('search')
   const [contactInfo, setContactInfo] = useState<{name: string, email: string} | null>(null)
   const [toneProfile, setToneProfile] = useState<any>(null)
+  const [showIntro, setShowIntro] = useState(false)
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem('email-tone-intro-dismissed')
+    if (!dismissed) setShowIntro(true)
+  }, [])
+
+  const dismissIntro = () => {
+    localStorage.setItem('email-tone-intro-dismissed', '1')
+    setShowIntro(false)
+  }
 
   const handleContactFound = (contact: {name: string, email: string}) => {
     setContactInfo(contact)
@@ -29,6 +40,28 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {showIntro && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 p-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Email Tone Analyzer</h2>
+            <p className="text-gray-600 mb-4">
+              This tool reads a curated set of demo emails and uses Claude to extract how you naturally write to a specific person — your vocabulary, formality level, and typical phrasing.
+            </p>
+            <p className="text-gray-600 mb-4">
+              Once the tone profile is built, you describe what you want to say and Claude drafts an email that sounds like <em>you</em> writing to <em>them</em>.
+            </p>
+            <p className="text-gray-500 text-sm mb-8">
+              All emails shown are demo data. No real inbox access is required.
+            </p>
+            <button
+              onClick={dismissIntro}
+              className="inline-flex items-center gap-2 bg-gray-900 text-white font-semibold px-6 py-3 rounded-xl hover:bg-gray-700 transition-colors"
+            >
+              Got it →
+            </button>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
