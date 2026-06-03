@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Search, Mail, User, AlertCircle } from 'lucide-react'
+import { DEMO_CONTACTS } from '@/lib/demo-data'
 
 interface ContactSearchProps {
   onContactFound: (contact: {name: string, email: string}) => void
@@ -12,9 +13,8 @@ export default function ContactSearch({ onContactFound }: ContactSearchProps) {
   const [isSearching, setIsSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!searchInput.trim()) return
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) return
 
     setIsSearching(true)
     setError(null)
@@ -22,12 +22,8 @@ export default function ContactSearch({ onContactFound }: ContactSearchProps) {
     try {
       const response = await fetch('/api/gmail/search', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contact: searchInput.trim()
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact: query.trim() }),
       })
 
       const data = await response.json()
@@ -36,18 +32,22 @@ export default function ContactSearch({ onContactFound }: ContactSearchProps) {
         throw new Error(data.error || 'Search failed')
       }
 
-      if (data.emailsFound === 0) {
-        setError('No email conversations found with this contact')
-        return
-      }
-
       onContactFound(data.contact)
-    } catch (error) {
-      console.error('Search failed:', error)
-      setError(error instanceof Error ? error.message : 'Failed to search emails')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to search emails')
     } finally {
       setIsSearching(false)
     }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    handleSearch(searchInput)
+  }
+
+  const handleChipClick = (name: string) => {
+    setSearchInput(name)
+    handleSearch(name)
   }
 
   return (
@@ -62,7 +62,7 @@ export default function ContactSearch({ onContactFound }: ContactSearchProps) {
         </p>
       </div>
 
-      <form onSubmit={handleSearch} className="max-w-md mx-auto">
+      <form onSubmit={handleSubmit} className="max-w-md mx-auto">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <User className="h-5 w-5 text-gray-400" />
@@ -85,7 +85,7 @@ export default function ContactSearch({ onContactFound }: ContactSearchProps) {
           {isSearching ? (
             <div className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-              Searching Gmail...
+              Searching...
             </div>
           ) : (
             <div className="flex items-center justify-center">
@@ -97,23 +97,43 @@ export default function ContactSearch({ onContactFound }: ContactSearchProps) {
       </form>
 
       {error && (
-        <div className="mt-4 p-4 bg-red-50 rounded-lg">
+        <div className="mt-4 p-4 bg-red-50 rounded-lg max-w-md mx-auto">
           <div className="flex items-start">
-            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-3" />
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
             <div className="text-sm text-red-800">
-              <p className="font-medium mb-1">Search Error</p>
+              <p className="font-medium mb-1">No results</p>
               <p>{error}</p>
             </div>
           </div>
         </div>
       )}
 
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+      {/* Demo contact chips */}
+      <div className="mt-8 max-w-md mx-auto">
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+          Try these demo contacts
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {DEMO_CONTACTS.map((contact) => (
+            <button
+              key={contact.email}
+              onClick={() => handleChipClick(contact.name)}
+              disabled={isSearching}
+              className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span>{contact.name}</span>
+              <span className="text-xs text-indigo-400 font-normal">{contact.role}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6 p-4 bg-blue-50 rounded-lg max-w-md mx-auto">
         <div className="flex items-start">
-          <Mail className="w-5 h-5 text-blue-600 mt-0.5 mr-3" />
+          <Mail className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
           <div className="text-sm text-blue-800">
             <p className="font-medium mb-1">What happens next?</p>
-            <p>We'll search your Gmail for the last 10 conversations with this contact and analyze your communication tone, style, and patterns.</p>
+            <p>We scan the last 10 conversations with your contact and build a tone profile — formality, greeting style, patterns — so your next email feels right.</p>
           </div>
         </div>
       </div>

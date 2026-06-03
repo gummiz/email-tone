@@ -13,8 +13,8 @@ export default function ToneAnalysis({ contact, onAnalysisComplete, onBack }: To
   const [isAnalyzing, setIsAnalyzing] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [analysisSteps, setAnalysisSteps] = useState([
-    { step: 'Connecting to Gmail...', completed: false, current: true },
-    { step: 'Fetching email conversations...', completed: false, current: false },
+    { step: 'Loading email history...', completed: false, current: true },
+    { step: 'Processing email threads...', completed: false, current: false },
     { step: 'Analyzing communication patterns...', completed: false, current: false },
     { step: 'Generating tone profile...', completed: false, current: false }
   ])
@@ -45,33 +45,17 @@ export default function ToneAnalysis({ contact, onAnalysisComplete, onBack }: To
         })
 
         const data = await response.json();
-        console.log('API Response:', JSON.stringify(data, null, 2));
 
         if (!response.ok) {
           throw new Error(data.error || 'Analysis failed');
         }
 
-        // The API now returns the tone analysis data at the root level
-        const toneProfile = {
-          overallTone: data.overallTone,
-          emailTones: data.emailTones || []
-        };
         const transformedProfile = {
-          formality: 'Professional', // Default value, can be enhanced
-          greetingStyle: toneProfile.overallTone === 'positive' ? 'Friendly' : 'Formal',
-          closingStyle: 'Best regards', // Default value
-          avgLength: 'Medium', // Default value
-          keyPatterns: toneProfile.emailTones && Array.isArray(toneProfile.emailTones)
-            ? toneProfile.emailTones
-                .filter((email: any) => email && email.tone === toneProfile.overallTone)
-                .slice(0, 3) // Take up to 3 key patterns
-                .map((email: any) => {
-                  const subject = email.subject || '';
-                  const words = subject.split(' ').slice(0, 5);
-                  return `${words.join(' ')}${words.length < subject.split(' ').length ? '...' : ''}`;
-                })
-                .filter(Boolean) // Remove any empty strings
-            : ['No patterns found']
+          formality: data.formality,
+          greetingStyle: data.greetingStyle,
+          closingStyle: data.closingStyle,
+          avgLength: data.avgLength,
+          keyPatterns: data.keyPatterns ?? [],
         };
 
         onAnalysisComplete(transformedProfile);
