@@ -39,6 +39,9 @@ export default function Home() {
           <p className="text-gray-600 max-w-2xl mx-auto">
             Analyze your communication patterns with specific contacts and compose emails that match your established tone
           </p>
+          <span className="inline-block mt-3 px-3 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+            Demo — sample contacts only
+          </span>
         </div>
 
         {/* Progress Steps */}
