@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error('ANTHROPIC_API_KEY is not set');
+}
+
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
@@ -54,6 +58,9 @@ Match the style exactly — use the same greeting, closing, length, and communic
     return NextResponse.json({ subject, body });
   } catch (error) {
     console.error('Compose API error:', error);
-    return NextResponse.json({ error: 'Failed to generate email' }, { status: 500 });
+    const message = !process.env.ANTHROPIC_API_KEY
+      ? 'ANTHROPIC_API_KEY is not configured'
+      : error instanceof Error ? error.message : 'Failed to generate email';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

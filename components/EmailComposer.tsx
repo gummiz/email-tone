@@ -15,11 +15,13 @@ export default function EmailComposer({ contact, toneProfile, onBack, onReset }:
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
+  const [generateError, setGenerateError] = useState<string | null>(null)
 
   const generateEmail = async () => {
     if (!emailGoal.trim()) return
 
     setIsGenerating(true)
+    setGenerateError(null)
 
     try {
       const res = await fetch('/api/gmail/compose', {
@@ -28,13 +30,13 @@ export default function EmailComposer({ contact, toneProfile, onBack, onReset }:
         body: JSON.stringify({ contact, toneProfile, goal: emailGoal }),
       })
 
-      if (!res.ok) throw new Error('Generation failed')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Generation failed')
 
-      const { subject: generatedSubject, body: generatedBody } = await res.json()
-      setSubject(generatedSubject)
-      setBody(generatedBody)
+      setSubject(data.subject)
+      setBody(data.body)
     } catch (error) {
-      console.error('Email generation failed:', error)
+      setGenerateError(error instanceof Error ? error.message : 'Failed to generate email')
     } finally {
       setIsGenerating(false)
     }
@@ -141,6 +143,10 @@ export default function EmailComposer({ contact, toneProfile, onBack, onReset }:
                   </div>
                 )}
               </button>
+
+              {generateError && (
+                <p className="mt-2 text-sm text-red-600">{generateError}</p>
+              )}
             </div>
 
             {/* Subject Line */}
