@@ -93,7 +93,7 @@ export const DEMO_EMAILS: Record<string, EmailMessage[]> = {
     },
     {
       id: 'sc6', threadId: 'tsc5',
-      subject: 'Sharing this article — thought you'd find it interesting',
+      subject: "Sharing this article - thought you'd find it interesting",
       from: 'me@example.com', to: 'sarah.chen@techcorp.com',
       date: new Date('2024-10-22'),
       body: "Hey Sarah, saw this piece on edge caching strategies and immediately thought of our conversation last week. Worth a read!",
